@@ -12,7 +12,8 @@ public:
     void add_results(int points){results.push_back(points);}
     void add_points(int points) {total_points += points;}
     void set_drivers(Driver first, Driver second){driver_1 = first; driver_2 = second;}
-    void set_expected_points(double points) { expected_points = std::round(points);}
+    void compute_expected_points() { expected_points = driver_1.get_expected_points() 
+                                                                    +driver_2.get_expected_points();}
     void compute_avg_points(){average_points 
                             = std::accumulate(results.begin(), results.end(), 0.0)/results.size();} 
     std::array<Driver, 2> get_drivers() const {

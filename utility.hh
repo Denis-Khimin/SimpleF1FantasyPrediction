@@ -274,26 +274,10 @@ std::vector<float> extract_features(const std::vector<int>& results) {
 
 //---------------------------------------
 // Create the dataset and prepare it for XGBoost training
-void prepare_dataset(std::vector<Driver>& drivers, std::vector<Team>& teams,
-                     std::vector<float>& feature_matrix, std::vector<float>& labels) {
+void prepare_dataset(std::vector<Driver>& drivers, std::vector<float>& feature_matrix, std::vector<float>& labels) {
     // Prepare data for drivers
     for (auto& driver : drivers) {
         std::vector<int> results = driver.get_race_results();
-        for (size_t i = 0; i < results.size() - 1; ++i) {
-            // Extract features from the first i race results
-            std::vector<float> features = extract_features(std::vector<int>(results.begin(), results.begin() + i + 1));
-            
-            // Add features to the feature matrix
-            feature_matrix.insert(feature_matrix.end(), features.begin(), features.end());
-            
-            // The target label is the next race result (i+1)
-            labels.push_back(results[i + 1]);
-        }
-    }
-
-    // Prepare data for teams
-    for (auto& team : teams) {
-        std::vector<int> results = team.get_race_results();
         for (size_t i = 0; i < results.size() - 1; ++i) {
             // Extract features from the first i race results
             std::vector<float> features = extract_features(std::vector<int>(results.begin(), results.begin() + i + 1));
@@ -354,7 +338,7 @@ void train_xgboost_model(const std::vector<float>& feature_matrix, const std::ve
 
 //---------------------------------------
 // Function to fine-tune the XGBoost model with recent race results
-void fine_tune_xgboost_model(std::vector<Driver>& drivers, std::vector<Team>& teams, 
+void fine_tune_xgboost_model(std::vector<Driver>& drivers,
                              const std::string& model_path, int num_recent_races = 3) {
     // Create feature matrix and labels for the most recent races
     std::vector<float> recent_feature_matrix;
@@ -372,20 +356,6 @@ void fine_tune_xgboost_model(std::vector<Driver>& drivers, std::vector<Team>& te
             );
             recent_feature_matrix.insert(recent_feature_matrix.end(), features.begin(), features.end());
             recent_labels.push_back(results.back());  // The most recent race is the target
-        }
-    }
-    
-    // Repeat the same process for teams
-    for (auto& team : teams) {
-        std::vector<int> results = team.get_race_results();
-        size_t num_races = results.size();
-        
-        if (num_races > num_recent_races) {
-            std::vector<float> features = extract_features(
-                std::vector<int>(results.end() - num_recent_races, results.end() - 1)
-            );
-            recent_feature_matrix.insert(recent_feature_matrix.end(), features.begin(), features.end());
-            recent_labels.push_back(results.back());
         }
     }
     
@@ -430,7 +400,7 @@ void fine_tune_xgboost_model(std::vector<Driver>& drivers, std::vector<Team>& te
 }
 
 //---------------------------------------
-void calculate_expected_performance_ML(std::vector<Driver>& drivers, std::vector<Team>& teams, const std::string& model_path) {
+void calculate_expected_performance_ML(std::vector<Driver>& drivers, const std::string& model_path) {
     // Load the pre-trained XGBoost model
     BoosterHandle booster;
     XGBoosterCreate(nullptr, 0, &booster);
@@ -454,29 +424,6 @@ void calculate_expected_performance_ML(std::vector<Driver>& drivers, std::vector
         
         // Set expected points for the driver
         driver.set_expected_points(out_result[0]);
-
-        // Clean up
-        XGDMatrixFree(dmatrix);
-    }
-
-    // Process teams similarly
-    for (auto& team : teams) {
-        std::vector<int> race_results = team.get_race_results();
-        
-        // Extract features from race results
-        std::vector<float> features = extract_features(race_results);
-        
-        // Convert features into DMatrix format (XGBoost input format)
-        DMatrixHandle dmatrix;
-        XGDMatrixCreateFromMat(features.data(), 1, features.size(), 0.0, &dmatrix);
-
-        // Perform prediction
-        bst_ulong out_len;
-        const float* out_result;
-        XGBoosterPredict(booster, dmatrix, 0, 0, 0, &out_len, &out_result);
-
-        // Set expected points for the team
-        team.set_expected_points(out_result[0]);
 
         // Clean up
         XGDMatrixFree(dmatrix);
@@ -555,40 +502,9 @@ void calculate_expected_performace_combi(std::vector<Driver>& drivers, std::vect
 
         drivers[i].set_expected_points(expected_points_combi);
     }
-
-    // Process teams
+    assign_drivers_to_teams(drivers,teams);
     for (size_t i = 0; i < teams.size(); ++i) {
-        std::vector<int> race_points = teams[i].get_race_results();
-        int n = race_points.size();
-
-        // Exponential decay approach
-        double weighted_sum = 0.0;
-        double total_weight = 0.0;
-
-        for (int j = 0; j < n; ++j) {
-            double weight = std::pow(decay_factor, (n - j - 1));
-            weighted_sum += race_points[j] * weight;
-            total_weight += weight;
-        }
-        double exp_points = weighted_sum / total_weight; 
-
-        // Moving average approach
-        double sum = 0.0;
-        int count = 0;
-        for (int j = std::max(0, n - window_size); j < n; ++j) {
-            sum += race_points[j];
-            count++;
-        }
-        double mov_avg_points = (count > 0) ? sum / count : 0;
-
-        // Combine both methods
-        double expected_points = (exp_points + mov_avg_points) / 2;
-
-        // Combine AI and stochastic
-        double expected_points_AI = drivers[i].get_expected_points();
-        double expected_points_combi = combine_predictions(expected_points_AI,expected_points, teams[i].get_average_points());
-
-        teams[i].set_expected_points(expected_points_combi);
+        teams[i].compute_expected_points();
     }
 }
 
