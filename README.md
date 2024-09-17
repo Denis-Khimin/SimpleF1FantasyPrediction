@@ -1,4 +1,4 @@
-# F1 Fantasy Points Prediction Program
+# F1 Fantasy Points Prediction
 
 This program predicts the F1 fantasy points for all drivers in the upcoming race using a combination of stochastic methods (moving averages and exponential decay) and machine learning (ML) techniques. Afterwards, an "optimal" fantasy team is chosen with maximal fantasy points under a specified budget.
 **Note:** This program is intentionally kept very simple. As a result, the machine learning model is limited in its ability to make accurate, real-world predictions.
