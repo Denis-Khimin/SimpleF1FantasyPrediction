@@ -1,5 +1,5 @@
 # Paths to XGBoost (adjust these to where you installed XGBoost)
-XGBOOST_PATH = /Users/macbookair2020/xgboost
+XGBOOST_PATH = /path/to/xgboost
 XGBOOST_INCLUDE = $(XGBOOST_PATH)/include
 XGBOOST_LIB = $(XGBOOST_PATH)/lib
 
