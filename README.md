@@ -40,7 +40,7 @@ This program predicts the F1 fantasy points for drivers in the upcoming race usi
 
 1. Clone this repository to your local machine:
    ```bash
-   git clone [https://github.com/Denis-Khimin/SimpleF1prediction.git]
+   git clone https://github.com/Denis-Khimin/SimpleF1FantasyPrediction.git
    ```
 2. Install the XGBoost library. Follow the installation guide on the [XGBoost GitHub page](https://github.com/dmlc/xgboost).
 
