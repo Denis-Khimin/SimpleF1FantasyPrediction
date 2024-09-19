@@ -1,16 +1,31 @@
-# Paths to XGBoost (adjust these to where you installed XGBoost)
-XGBOOST_PATH = /path/to/xgboost
-XGBOOST_INCLUDE = $(XGBOOST_PATH)/include
-XGBOOST_LIB = $(XGBOOST_PATH)/lib
+# Compiler and flags
+CXX = g++
+CXXFLAGS = -Wall -std=c++17
 
-# Compile and link with XGBoost
-# List of source files
-SOURCES = main.cpp other_source1.cpp other_source2.cpp
+# XGBoost library and include paths
+XGBOOST_LIB = -lxgboost
 
-# Compile and link with XGBoost
-main: $(SOURCES)
-	g++ -Wall -std=c++17 -lxgboost $(SOURCES) -o main
+# Source files and output executable
+SOURCES = main.cpp
+HEADERS = driver.hh team.hh utility.hh
+OBJECTS = $(SOURCES:.cpp=.o)
+EXECUTABLE = main
+
+# Default target
+all: $(EXECUTABLE)
+
+# Compile source files into object files
+%.o: %.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Link object files to create the executable
+$(EXECUTABLE): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) $(XGBOOST_LIB) -o $(EXECUTABLE)
 
 # Run the program
-run: main
-	./main
+run: $(EXECUTABLE)
+	./$(EXECUTABLE)
+
+# Clean up
+clean:
+	rm -f $(OBJECTS) $(EXECUTABLE)
