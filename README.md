@@ -43,7 +43,7 @@ This program predicts the F1 fantasy points for all drivers in the upcoming race
    ```
 2. Install the XGBoost library. Follow the installation guide on the [XGBoost GitHub page](https://github.com/dmlc/xgboost).
 
-3. Compile and run the program using the Makefile
+3. Compile and run the program using a proper makefile (the one provided here might not necessarily work on your machine)
 
 4. The program will:
    - Load driver and team data from the CSV files.
