@@ -8,11 +8,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Checkout the repository
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: sudo apt-get install libxgboost-dev
+    # Install XGBoost
+    - name: Install XGBoost
+      run: sudo apt-get install -y libxgboost-dev
 
-    - name: Build and run with Makefile
+    # Install other dependencies if needed
+    - name: Install build essentials
+      run: sudo apt-get install -y build-essential
+
+    # Build the project using Makefile
+    - name: Build with Makefile
       run: make
+
+    # Run the program
+    - name: Run the program
+      run: ./main
