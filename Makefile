@@ -4,8 +4,12 @@ XGBOOST_INCLUDE = $(XGBOOST_PATH)/include
 XGBOOST_LIB = $(XGBOOST_PATH)/lib
 
 # Compile and link with XGBoost
-main: main.cpp
-	g++ -Wall -std=c++17 -I$(XGBOOST_INCLUDE) -L$(XGBOOST_LIB) -lxgboost -Wl,-rpath,$(XGBOOST_LIB) main.cpp -o main
+# List of source files
+SOURCES = main.cpp other_source1.cpp other_source2.cpp
+
+# Compile and link with XGBoost
+main: $(SOURCES)
+	g++ -Wall -std=c++17 -lxgboost $(SOURCES) -o main
 
 # Run the program
 run: main
